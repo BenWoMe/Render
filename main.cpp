@@ -6,7 +6,35 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include<stb_image.h>
 #include"shader.h"
+#include"camera.h"
 
+float g_deltaTime = 0.0f;
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 
+    45.0f, 800.0f/600.0f, 0.1f, 100.0f, "view");
+
+glm::vec3 g_lightPos{2.0f, 2.0f, -5.0f};
+
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
+    if(key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT) ){
+        camera.MoveLeft(g_deltaTime);
+    }
+
+    if(key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT)){
+        camera.MoveFront(g_deltaTime);
+    }
+
+    if(key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT)){
+        camera.MoveBack(g_deltaTime);
+    }
+
+    if(key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT)){
+        camera.MoveRight(g_deltaTime);
+    }
+}
+
+void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
+    camera.Zoom(yoffset);
+}
 
 int main(){
     glfwInit();
@@ -21,6 +49,8 @@ int main(){
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSetKeyCallback(window, KeyCallback);
+    glfwSetScrollCallback(window, ScrollCallback);
 
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cerr << "Glad load failed."<<std::endl;
@@ -30,20 +60,35 @@ int main(){
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nVertexAttribs);
     std::cout << "The max number of vertex attribs is "<< nVertexAttribs<<std::endl;
 
-    glViewport(50,50, 400, 300);
+    glViewport(0,0, 800, 600);
 
 
     float vertices[] = {
         // 3 pos + 3 color + 2 tex coord.
-        -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-         0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-         0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f,
-         0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f
+        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // 1
+         0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // 2
+         0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f, // 3
+         -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, // 4
+        -0.5f, -0.5f, 0.5f, 1.0f, 0.2f, 0.0f, 0.0f, 0.0f, // 5
+         0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.2f, 1.0f, 0.0f, // 6
+         0.5f, -0.5f, -0.5f, 0.2f, 0.0f, 1.0f, 0.5f, 1.0f, // 7
+         -0.5f, -0.5f, -0.5f, 0.9f, 0.9f, 0.5f, 0.5f, 1.0f // 8
     };
     unsigned int index[] = {
-        0, 1, 2, // 第一个三角形
-        0, 1, 3 // 第二个三角形
+        0, 1, 3, //上
+        1, 2, 3,
+        0, 1, 5, // 前
+        0, 4, 5,
+        2, 3, 7, // 后
+        2, 6, 7,
+        4, 5, 7, // 下
+        5, 6, 7,
+        0, 3, 4, // 左
+        3, 4, 7,
+        1, 2, 5, // 右
+        2, 5, 6
     };
+
 
 
     unsigned int VAO;
@@ -63,6 +108,7 @@ int main(){
 
     unsigned int tex;
     glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
@@ -80,8 +126,6 @@ int main(){
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
     
-    Program program("shader/vertex.shader", "shader/fragment.shader");
-    program.Use();
 
     unsigned int stride = 8 * sizeof(float);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
@@ -91,19 +135,39 @@ int main(){
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glUseProgram(program);
+
+
     
+    Program program("shader/vertex.shader", "shader/fragment.shader");
+    Program lightProgram("shader/vertex.shader", "shader/lightFragment.shader");
+
+    glEnable(GL_DEPTH_TEST);
+    camera.AddProgram(program);
+    camera.AddProgram(lightProgram);
+
+    glm::mat4 model(1.0f);
+
+    program.SetMat4("model", glm::value_ptr(model));
+    lightProgram.SetMat4("model", glm::value_ptr(glm::translate(glm::mat4(1.0f),g_lightPos)));
+
+    auto current = glfwGetTime();
     while(!glfwWindowShouldClose(window)){
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f); // 清屏的范围和OpenGL的渲染范围不一样
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float t = glfwGetTime();
-        float green = 0.5*(sin(t)+1);
-        GLint location = glGetUniformLocation(program, "uColor");
-        glUniform4f(location, 1.0f, green ,0.5f, 1.0f);
+        
+        g_deltaTime = glfwGetTime() - current;
+        current = glfwGetTime(); 
+        // 画物体
+        program.Use();
         glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6,  GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36,  GL_UNSIGNED_INT, 0);
+
+        // 画光源
+        lightProgram.Use();
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 36,  GL_UNSIGNED_INT, 0);
+
 
         glBindVertexArray(0);
         glfwPollEvents();

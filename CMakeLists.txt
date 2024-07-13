@@ -14,6 +14,6 @@ endif()
 
 add_subdirectory("external")
 add_executable(opengl "main.cpp")
-target_include_directories(opengl PUBLIC "external/glfw/include" "external/stb_image")
+target_include_directories(opengl PUBLIC "external/glfw/include" "external/stb_image" "external/glm")
 target_link_directories(opengl PUBLIC "external/glfw/lib")
 target_link_libraries(opengl PUBLIC "glfw3" GLAD "opengl32") # 指定cmake中的库或者第三方库的名字

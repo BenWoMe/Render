@@ -69,6 +69,9 @@ public:
     const std::string GetSrc() const {return m_source;}
 
     unsigned int GetId() const{return m_id;}
+    ~Shader() {
+        glDeleteShader(m_id);
+    }
 protected:
     unsigned int m_id = 0;
     ShaderType m_type;
@@ -77,6 +80,8 @@ protected:
 
 class Program{
 public:
+    Program(): m_programId(0){
+    }
     Program(const std::string& vertexFile, const std::string& fragmentFile)
         :m_vertexShader(vertexFile, ShaderType::VERTEX_SHADER), 
         m_fragmentShader(fragmentFile, ShaderType::FRAGMENT_SHADER){
@@ -87,16 +92,39 @@ public:
         GetLinkInfo(m_programId);
     }
 
+
     void Use() const{
         glUseProgram(m_programId);
     }
+    void UnUse() const{
+        glUseProgram(0);
+    }
 
     void AttachShader(const Shader& shader) {
+        Use();
         glAttachShader(m_programId, shader);
+        UnUse();
     }
     operator unsigned int() const{
         return m_programId;
     }
+
+    void SetMat4(const std::string& name, const float* value) const{
+        Use();
+        auto location = glGetUniformLocation(m_programId, name.c_str());
+        glUniformMatrix4fv(location, 1, GL_FALSE, value);
+        UnUse();
+    }
+
+    void Delete() const{
+        glDeleteProgram(m_programId);
+    }
+
+    // 如果出现拷贝怎么办?
+    ~Program(){
+        glUseProgram(0);
+    }
+
 protected:
     unsigned int m_programId;
     Shader m_vertexShader;
