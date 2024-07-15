@@ -12,7 +12,8 @@ float g_deltaTime = 0.0f;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 
     45.0f, 800.0f/600.0f, 0.1f, 100.0f, "view");
 
-glm::vec3 g_lightPos{2.0f, 2.0f, -5.0f};
+glm::vec3 g_lightPos{0.0f, 0.0f, 2.0f};
+glm::vec3 g_lightColor{1.0f, 1.0f, 1.0f};
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods){
     if(key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT) ){
@@ -36,6 +37,10 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset){
     camera.Zoom(yoffset);
 }
 
+void CursorCallback(GLFWwindow* window, double xpos, double ypos){
+
+}
+
 int main(){
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -51,6 +56,7 @@ int main(){
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, KeyCallback);
     glfwSetScrollCallback(window, ScrollCallback);
+    glfwSetCursorPosCallback(window, CursorCallback);
 
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cerr << "Glad load failed."<<std::endl;
@@ -62,18 +68,60 @@ int main(){
 
     glViewport(0,0, 800, 600);
 
+float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-    float vertices[] = {
-        // 3 pos + 3 color + 2 tex coord.
-        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // 1
-         0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // 2
-         0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f, // 3
-         -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, // 4
-        -0.5f, -0.5f, 0.5f, 1.0f, 0.2f, 0.0f, 0.0f, 0.0f, // 5
-         0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.2f, 1.0f, 0.0f, // 6
-         0.5f, -0.5f, -0.5f, 0.2f, 0.0f, 1.0f, 0.5f, 1.0f, // 7
-         -0.5f, -0.5f, -0.5f, 0.9f, 0.9f, 0.5f, 0.5f, 1.0f // 8
-    };
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+};
+    //float vertices[] = {
+        //// 3 pos + 3 color + 2 tex coord.
+        //-0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // 1
+         //0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // 2
+         //0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f, // 3
+         //-0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, // 4
+        //-0.5f, -0.5f, 0.5f, 1.0f, 0.2f, 0.0f, 0.0f, 0.0f, // 5
+         //0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.2f, 1.0f, 0.0f, // 6
+         //0.5f, -0.5f, -0.5f, 0.2f, 0.0f, 1.0f, 0.5f, 1.0f, // 7
+         //-0.5f, -0.5f, -0.5f, 0.9f, 0.9f, 0.5f, 0.5f, 1.0f // 8
+    //};
     unsigned int index[] = {
         0, 1, 3, //上
         1, 2, 3,
@@ -127,13 +175,13 @@ int main(){
     stbi_image_free(data);
     
 
-    unsigned int stride = 8 * sizeof(float);
+    unsigned int stride = 6 * sizeof(float);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6*sizeof(float)));
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6*sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
+    //glEnableVertexAttribArray(2);
 
 
 
@@ -148,7 +196,7 @@ int main(){
     glm::mat4 model(1.0f);
 
     program.SetMat4("model", glm::value_ptr(model));
-    lightProgram.SetMat4("model", glm::value_ptr(glm::translate(glm::mat4(1.0f),g_lightPos)));
+    program.SetVec3("lightColor", glm::value_ptr(g_lightColor));
 
     auto current = glfwGetTime();
     while(!glfwWindowShouldClose(window)){
@@ -158,15 +206,20 @@ int main(){
         
         g_deltaTime = glfwGetTime() - current;
         current = glfwGetTime(); 
+
+        g_lightPos = glm::vec3(5* sin(current), 1.0f, 5 *cos(current));
         // 画物体
+        program.SetVec3("eyePos", glm::value_ptr(camera.GetPos()));
+        program.SetVec3("lightPos", glm::value_ptr(g_lightPos));
         program.Use();
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36,  GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // 画光源
+        lightProgram.SetMat4("model", glm::value_ptr(glm::translate(glm::mat4(1.0f), g_lightPos)));
         lightProgram.Use();
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36,  GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
         glBindVertexArray(0);

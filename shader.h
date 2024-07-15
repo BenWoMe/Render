@@ -116,6 +116,13 @@ public:
         UnUse();
     }
 
+    void SetVec3(const std::string& name, const float* value) const{
+        Use();
+        auto location = glGetUniformLocation(m_programId, name.c_str());
+        glUniform3f(location, value[0], value[1], value[2]);
+        UnUse();
+    }
+
     void Delete() const{
         glDeleteProgram(m_programId);
     }

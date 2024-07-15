@@ -23,20 +23,20 @@ using mat_type = glm::mat4;
 
     void MoveLeft(float deltaTime) {
         auto leftDir = glm::normalize(glm::cross(m_up, m_dir));
-        m_pos += deltaTime * leftDir;
+        m_pos += m_moveFactor * deltaTime * leftDir;
         Update();
     }
     void MoveRight(float deltaTime){
         auto leftDir = glm::normalize(glm::cross(m_up, m_dir));
-        m_pos -= deltaTime * leftDir;
+        m_pos -= m_moveFactor * deltaTime * leftDir;
         Update();
     }
     void MoveFront(float deltaTime){
-        m_pos +=  deltaTime *  glm::normalize(m_dir);
+        m_pos +=  m_moveFactor * deltaTime *  glm::normalize(m_dir);
         Update();
     }
     void MoveBack(float deltaTime){
-        m_pos -= deltaTime * glm::normalize(m_dir);
+        m_pos -= m_moveFactor * deltaTime * glm::normalize(m_dir);
         Update();
     }
 
@@ -44,6 +44,8 @@ using mat_type = glm::mat4;
         m_fov = std::clamp(m_fov += offset, 0.1f, 89.0f);
         Update();
     }
+
+    vec_type GetPos() const{return m_pos;}
 
     ~Camera(){
         for(auto& program : m_programs){
@@ -71,6 +73,7 @@ protected:
     vec_type m_pos;
     vec_type m_dir;
     vec_type m_up;
+    float m_moveFactor = 5.0f;
 
 // projection
     float m_farFace;
