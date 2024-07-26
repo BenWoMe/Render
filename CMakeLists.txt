@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.26.0)
 
 project(opengl LANGUAGES C CXX)
 # 设置c++版本和编译器
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.34.31933/bin/Hostx64/x64/cl.exe")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # 只有Makefile 和Ninja支持该选项
 
 if(MSVC)
     add_compile_options(/EHsc)
