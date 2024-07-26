@@ -41,7 +41,7 @@ using mat_type = glm::mat4;
     }
 
     void Zoom(float offset){
-        m_fov = std::clamp(m_fov += offset, 0.1f, 89.0f);
+        m_fov = glm::clamp(m_fov += offset, 0.1f, 89.0f);
         Update();
     }
 

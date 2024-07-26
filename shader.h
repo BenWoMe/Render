@@ -60,6 +60,7 @@ public:
             std::getline(fs, tmp);
             m_source += tmp + "\n";
         }
+        return true;
     }
 
     operator unsigned int() const{
