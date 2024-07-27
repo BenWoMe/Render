@@ -4,9 +4,10 @@
 #include<GLFW/glfw3.h>
 #include<format>
 #define STB_IMAGE_IMPLEMENTATION
-#include<stb_image.h>
 #include"shader.h"
 #include"camera.h"
+#include"model.hpp"
+#include"gl_utility.hpp"
 
 float g_deltaTime = 0.0f;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 
@@ -138,58 +139,58 @@ float vertices[] = {
     };
 
 
-
+    Model nanosuit("../asset/nanosuit/nanosuit.obj");
     unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    GL_ERROR(glGenVertexArrays(1, &VAO));
+    GL_ERROR(glBindVertexArray(VAO));
 
     unsigned int VEO;
-    glGenBuffers(1, & VEO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VEO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW);
+    GL_ERROR(glGenBuffers(1, & VEO));
+    GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VEO));
+    GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW));
 
     unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    GL_ERROR(glGenBuffers(1, &VBO));
+    GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, VBO));
+    GL_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
 
 
     unsigned int tex;
-    glGenTextures(1, &tex);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
+    GL_ERROR(glGenTextures(1, &tex));
+    GL_ERROR(glActiveTexture(GL_TEXTURE0));
+    GL_ERROR(glBindTexture(GL_TEXTURE_2D, tex));
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT));
+    GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT));
+    GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+    GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 
     int TEX_WIDTH, TEX_HEIGHT, channel;
-    unsigned char* data = stbi_load("asset/image.png", &TEX_WIDTH, &TEX_HEIGHT, &channel, 0);
+    unsigned char* data = stbi_load("../asset/image.png", &TEX_WIDTH, &TEX_HEIGHT, &channel, 0);
     if(!data){
         throw std::runtime_error("texture data isn't exist.");
         return -1;
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
+    GL_ERROR(glGenerateMipmap(GL_TEXTURE_2D));
     stbi_image_free(data);
     
 
     unsigned int stride = 6 * sizeof(float);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
+    GL_ERROR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0));
+    GL_ERROR(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float))));
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    GL_ERROR(glEnableVertexAttribArray(0));
+    GL_ERROR(glEnableVertexAttribArray(1));
     //glEnableVertexAttribArray(2);
 
 
 
     
-    Program program("shader/vertex.shader", "shader/fragment.shader");
-    Program lightProgram("shader/vertex.shader", "shader/lightFragment.shader");
+    Program program("../shader/vertex.shader", "../shader/fragment.shader");
+    Program lightProgram("../shader/vertex.shader", "../shader/lightFragment.shader");
 
-    glEnable(GL_DEPTH_TEST);
+    GL_ERROR(glEnable(GL_DEPTH_TEST));
     camera.AddProgram(program);
     camera.AddProgram(lightProgram);
 
@@ -200,8 +201,8 @@ float vertices[] = {
 
     auto current = glfwGetTime();
     while(!glfwWindowShouldClose(window)){
-        glClearColor(0.2f, 0.3f, 0.4f, 1.0f); // 清屏的范围和OpenGL的渲染范围不一样
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL_ERROR(glClearColor(0.2f, 0.3f, 0.4f, 1.0f)); // 清屏的范围和OpenGL的渲染范围不一样
+        GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         
         g_deltaTime = glfwGetTime() - current;
@@ -211,22 +212,25 @@ float vertices[] = {
         // 画物体
         program.SetVec3("eyePos", glm::value_ptr(camera.GetPos()));
         program.SetVec3("lightPos", glm::value_ptr(g_lightPos));
+
+        nanosuit.Draw(program);// 标准模型
+
         program.Use();
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        GL_ERROR(glBindVertexArray(VAO));
+        GL_ERROR(glDrawArrays(GL_TRIANGLES, 0, 36));
 
         // 画光源
         lightProgram.SetMat4("model", glm::value_ptr(glm::translate(glm::mat4(1.0f), g_lightPos)));
         lightProgram.Use();
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        GL_ERROR(glBindVertexArray(VAO));
+        GL_ERROR(glDrawArrays(GL_TRIANGLES, 0, 36));
 
 
-        glBindVertexArray(0);
-        glfwPollEvents();
-        glfwSwapBuffers(window);
+        GL_ERROR(glBindVertexArray(0));
+        GL_ERROR(glfwPollEvents());
+        GL_ERROR(glfwSwapBuffers(window));
     }
 
-    glfwTerminate();
+    GL_ERROR(glfwTerminate());
     return 0;
 }

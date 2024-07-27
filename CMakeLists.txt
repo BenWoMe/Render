@@ -15,7 +15,24 @@ endif()
 
 add_subdirectory("external")
 add_executable(opengl "main.cpp")
-target_include_directories(opengl PUBLIC "external/glfw/include" "external/stb_image" "external/glm")
+target_include_directories(opengl PUBLIC  "external/glfw/include" "external/stb_image" "external/glm" "external/glad/include" "external/assimp/include")
+target_include_directories(opengl PUBLIC "${CMAKE_BINARY_DIR}/external/assimp/include")
 target_link_directories(opengl PUBLIC "external/glfw/lib")
-target_link_libraries(opengl PUBLIC "glfw3" GLAD "opengl32" "assimp") # 指定cmake中的库或者第三方库的名字
-target_compile_definitions(opengl PUBLIC _CRT_SECURE_NO_WARNINGS)
+target_link_libraries(opengl PUBLIC "glfw3" GLAD "opengl32" assimp) # 指定cmake中的库或者第三方库的名字, 注意assimp生成的库的名字是assimpd
+
+target_compile_definitions(opengl PUBLIC _Debug)
+
+
+# file(COPY build/external/assimp/bin/assimpd.dll DESTINATION build/) # 仅在config阶段进行文件拷贝
+if(${BUILD_SHARED_LIBS})
+    target_compile_definitions(opengl PUBLIC ASSIMP_DLL)
+    set(ASSIMP_DLL_PATH ${CMAKE_BINARY_DIR}/external/assimp/bin/assimp.dll)
+    set(ASSIMP_STATIC_PATH ${CMAKE_BINARY_DIR}/external/assimp/lib/assimp.lib)
+    set(ASSIMP_PDB_PATH ${CMAKE_BINARY_DIR}/external/assimp/bin/assimp.pdb)
+    add_custom_command(
+        TARGET opengl POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${ASSIMP_DLL_PATH} ${CMAKE_BINARY_DIR}/assimp.dll
+        COMMAND ${CMAKE_COMMAND} -E copy ${ASSIMP_STATIC_PATH} ${CMAKE_BINARY_DIR}/assimp.lib
+        COMMAND ${CMAKE_COMMAND} -E copy ${ASSIMP_PDB_PATH} ${CMAKE_BINARY_DIR}/assimp.pdb
+    )
+endif()
