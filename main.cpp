@@ -8,6 +8,7 @@
 #include"camera.h"
 #include"model.hpp"
 #include"gl_utility.hpp"
+#include"vertex.hpp"
 
 float g_deltaTime = 0.0f;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 
@@ -231,6 +232,6 @@ float vertices[] = {
         GL_ERROR(glfwSwapBuffers(window));
     }
 
-    GL_ERROR(glfwTerminate());
+    glfwTerminate();
     return 0;
 }

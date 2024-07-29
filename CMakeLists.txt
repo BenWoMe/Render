@@ -14,7 +14,7 @@ endif()
 
 
 add_subdirectory("external")
-add_executable(opengl "main.cpp")
+add_executable(opengl "main.cpp" "vertex.cpp")
 target_include_directories(opengl PUBLIC  "external/glfw/include" "external/stb_image" "external/glm" "external/glad/include" "external/assimp/include")
 target_include_directories(opengl PUBLIC "${CMAKE_BINARY_DIR}/external/assimp/include")
 target_link_directories(opengl PUBLIC "external/glfw/lib")
