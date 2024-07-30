@@ -190,20 +190,25 @@ float vertices[] = {
     
     Program program("../shader/vertex.shader", "../shader/fragment.shader");
     Program lightProgram("../shader/vertex.shader", "../shader/lightFragment.shader");
+    Program marginProgram("../shader/vertex.shader", "../shader/singleColor.shader");
 
     GL_ERROR(glEnable(GL_DEPTH_TEST));
+    GL_ERROR(glDepthFunc(GL_LESS));
     camera.AddProgram(program);
     camera.AddProgram(lightProgram);
+    camera.AddProgram(marginProgram);
 
     glm::mat4 model(1.0f);
 
     program.SetMat4("model", glm::value_ptr(model));
     program.SetVec3("lightColor", glm::value_ptr(g_lightColor));
 
+
+
     auto current = glfwGetTime();
     while(!glfwWindowShouldClose(window)){
         GL_ERROR(glClearColor(0.2f, 0.3f, 0.4f, 1.0f)); // 清屏的范围和OpenGL的渲染范围不一样
-        GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
         
         g_deltaTime = glfwGetTime() - current;
@@ -214,6 +219,7 @@ float vertices[] = {
         program.SetVec3("eyePos", glm::value_ptr(camera.GetPos()));
         program.SetVec3("lightPos", glm::value_ptr(g_lightPos));
 
+        nanosuit.EnableMargin(marginProgram);
         nanosuit.Draw(program);// 标准模型
 
         program.Use();
@@ -232,6 +238,8 @@ float vertices[] = {
         GL_ERROR(glfwSwapBuffers(window));
     }
 
+    program.Delete();
+    lightProgram.Delete();
     glfwTerminate();
     return 0;
 }

@@ -42,11 +42,11 @@ public:
     }
     Shader(const std::string& filename, ShaderType  type) :m_type(type){
         ReadSrc(filename);
-        GL_ERROR(m_id = glCreateShader((GLenum)type));
-        const char* ptr = m_source.c_str();
-        GL_ERROR(glShaderSource(m_id, 1, &ptr, nullptr));
-        GL_ERROR(glCompileShader(m_id));
-        GetCompileInfo(type, m_id);
+        Generate();
+    }
+
+    void ReGenerate() {
+        Generate();
     }
     bool ReadSrc(const std::string& filename){
         std::fstream fs;
@@ -74,6 +74,14 @@ public:
         GL_ERROR(glDeleteShader(m_id));
     }
 protected:
+    void Generate(){
+        GL_ERROR(m_id = glCreateShader((GLenum)m_type));
+        const char* ptr = m_source.c_str();
+        GL_ERROR(glShaderSource(m_id, 1, &ptr, nullptr));
+        GL_ERROR(glCompileShader(m_id));
+        GetCompileInfo(m_type, m_id);
+    }
+protected:
     unsigned int m_id = 0;
     ShaderType m_type;
     std::string m_source;
@@ -86,13 +94,24 @@ public:
     Program(const std::string& vertexFile, const std::string& fragmentFile)
         :m_vertexShader(vertexFile, ShaderType::VERTEX_SHADER), 
         m_fragmentShader(fragmentFile, ShaderType::FRAGMENT_SHADER){
-        GL_ERROR(m_programId = glCreateProgram());
-        GL_ERROR(glAttachShader(m_programId, m_vertexShader));
-        GL_ERROR(glAttachShader(m_programId, m_fragmentShader));
-        GL_ERROR(glLinkProgram(m_programId));
-        GL_ERROR(GetLinkInfo(m_programId));
+        Generate();
     }
 
+    void BindVertexShader(const std::string& vertexFile) {
+        m_vertexShader = Shader{vertexFile, ShaderType::VERTEX_SHADER};
+        m_vertexShader.ReGenerate();
+    }
+
+    void BindFragmentShader(const std::string& fragmentFile){
+        m_fragmentShader = Shader{fragmentFile, ShaderType::FRAGMENT_SHADER};
+        m_fragmentShader.ReGenerate();
+    }
+
+    void ReGenerate() {
+        m_fragmentShader.ReGenerate();
+        m_vertexShader.ReGenerate();
+        Generate();
+    }
 
     void Use() const{
         GL_ERROR(glUseProgram(m_programId));
@@ -135,6 +154,14 @@ public:
         GL_ERROR(glUseProgram(0));
     }
 
+protected:
+    void Generate(){
+        GL_ERROR(m_programId = glCreateProgram());
+        GL_ERROR(glAttachShader(m_programId, m_vertexShader));
+        GL_ERROR(glAttachShader(m_programId, m_fragmentShader));
+        GL_ERROR(glLinkProgram(m_programId));
+        GL_ERROR(GetLinkInfo(m_programId));
+    }
 protected:
     unsigned int m_programId;
     Shader m_vertexShader;

@@ -5,15 +5,50 @@
 #include<assimp/postprocess.h>
 class Model{
 public:
-    Model(std::string filename): m_filename(filename){
+    Model(std::string filename): m_filename(filename), m_enableMerge(false){
         LoadModel();
     }
 
     virtual void Draw(Program& program){
         
+        if(m_enableMerge){
+            // 启动stencil测试
+            GL_ERROR(glEnable(GL_STENCIL_TEST));
+            GL_ERROR(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
+            GL_ERROR(glStencilMask(0xFF));
+            GL_ERROR(glStencilFunc(GL_ALWAYS, 1, 0xFF));
+        }
         for(auto& mesh : m_meshes){
             mesh.Draw(program);
         }
+
+        if(m_enableMerge){
+            GL_ERROR(glDisable(GL_DEPTH_TEST));
+            GL_ERROR(glStencilMask(0x00));
+            GL_ERROR(glStencilFunc(GL_NOTEQUAL, 1, 0xFF));
+
+            // 放大
+            glm::mat4 model(1.0f);
+            model = glm::scale(model, glm::vec3(1.002f, 1.002f, 1.002f));
+            m_marginProgram->SetMat4("model", glm::value_ptr(model));
+
+            // 再次绘制
+            for(auto& mesh : m_meshes){
+                mesh.Draw(*m_marginProgram);
+            }
+
+            GL_ERROR(glStencilMask(0xFF));
+            GL_ERROR(glEnable(GL_DEPTH_TEST));
+            GL_ERROR(glDisable(GL_STENCIL_TEST));
+        }
+
+    }
+    void EnableMargin(Program& margin) {
+        m_enableMerge = true;
+        m_marginProgram = &margin;
+    }
+    void DisableMargin(){
+        m_enableMerge = false;
     }
     virtual ~Model(){}
 private:
@@ -72,4 +107,6 @@ private:
 private:
     std::vector<Mesh> m_meshes;
     std::string m_filename;
+    bool m_enableMerge;
+    Program* m_marginProgram;
 };

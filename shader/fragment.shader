@@ -19,4 +19,6 @@ void main()
 
     float amb = 0.1f;
     FragColor = vec4((amb + diff + inspect) * lightColor * fragColor, 1.0f);
+    //FragColor = vec4(vec3(gl_FragCoord.z), 1.0f);
+
 }
